@@ -3,6 +3,34 @@
 
 ------------------------------------------------------------------------
 -- BYPASS LAYER
+-- i-dagdag mo ito sa SIMULA ng script, bago lahat
+-- Executor identity wipe
+pcall(function()
+    -- Clear executor globals
+    local sigs = {
+        "syn", "KRNL_LOADED", "fluxus", "is_fluxus",
+        "DELTA_LOADED", "codex", "getgenv", "filtergc",
+        "Drawing", "isexecutorclosure", "checkclosure",
+        "cloneref", "compareinstances"
+    }
+    for _, s in ipairs(sigs) do
+        pcall(function() _G[s] = nil end)
+    end
+end)
+
+-- Hook getfenv para itago executor functions
+pcall(function()
+    local oldGetfenv = getfenv
+    getfenv = newcclosure(function(f)
+        local env = oldGetfenv(f)
+        -- strip executor markers from function environments
+        local blocked = {"syn","KRNL_LOADED","fluxus","Drawing"}
+        for _, k in ipairs(blocked) do
+            pcall(function() env[k] = nil end)
+        end
+        return env
+    end)
+end)
 ------------------------------------------------------------------------
 
 -- 1. Hyperion / Byfron fingerprint spoof
